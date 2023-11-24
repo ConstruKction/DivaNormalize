@@ -1,6 +1,7 @@
 import shlex
 import shutil
 import subprocess
+import sys
 import tempfile
 from pathlib import Path
 
@@ -20,8 +21,9 @@ class AudioProcessor:
             with open(record_file, 'r') as f:
                 for item in f:
                     self.processed_files.append(item)
+
         except FileNotFoundError:
-            pass
+            pass  # No file = no big deal, program will continue and create one
 
     def save_processed_files(self, record_file):
         with open(record_file, 'a+') as f:
@@ -29,6 +31,10 @@ class AudioProcessor:
                 f.write(f'{item}\n')
 
     def find_oggs(self):
+        if not self.mods_dir_path.exists():
+            logger.critical('Invalid mod directory path.')
+            sys.exit(1)
+
         for path in Path(self.mods_dir_path).rglob('song/*.ogg'):
             self.oggs.append(path)
 
