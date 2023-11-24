@@ -3,6 +3,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import concurrent.futures
 from pathlib import Path
 from typing import List
 
@@ -55,23 +56,27 @@ class AudioProcessor:
         subprocess.run(command)
         logger.info(f'Normalizing {filename.name}')
 
+    def process_ogg(self, ogg, lufs, sample_rate):
+        if f'{ogg.name}' in self.processed_files:
+            logger.warning(f'Song {ogg.name} is already normalized. Skipping to the next song.')
+        else:
+            temp_output_path = str(Path(tempfile.mkdtemp()) / ogg.name)
+
+            command = self.build_command(ogg, lufs, sample_rate, temp_output_path)
+            self.execute_command(command, ogg)
+
+            shutil.move(temp_output_path, ogg)  # Rename the temp file to overwrite the original
+
+            self.processed_files.add(ogg.name)
+            logger.info(f'Song {ogg.name} normalized and saved in the known records')
+
+            self.save_processed_files('processed_songs.txt')
+
     def process_oggs(self, lufs: float, sample_rate: int) -> None:
         logger.info(f'LUFS: {lufs}')
 
-        for ogg in list(self.oggs):  # Create a copy of the set to avoid modification during iteration
-            if f'{ogg.name}' in self.processed_files:
-                logger.warning(f'Song {ogg.name} is already normalized. Skipping to the next song.')
-            else:
-                temp_output_path = str(Path(tempfile.mkdtemp()) / ogg.name)
-
-                command = self.build_command(ogg, lufs, sample_rate, temp_output_path)
-                self.execute_command(command, ogg)
-
-                shutil.move(temp_output_path, ogg)  # Rename the temp file to overwrite the original
-
-                self.processed_files.add(ogg.name)
-                logger.info(f'Song {ogg.name} normalized and saved in the known records')
-
-                self.save_processed_files('processed_songs.txt')
+        with concurrent.futures.ProcessPoolExecutor() as executor:
+            # Use executor.map to parallelize the processing of oggs
+            executor.map(self.process_ogg, self.oggs, [lufs] * len(self.oggs), [sample_rate] * len(self.oggs))
 
         logger.info('Done.')
