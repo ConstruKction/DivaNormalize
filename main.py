@@ -3,7 +3,8 @@ from pathlib import Path
 
 from audio_processor import AudioProcessor
 
-if __name__ == '__main__':
+
+def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('-i', '--input',
                         help='FULL PATH to your mods directory. Default is wherever the script is.',
@@ -23,3 +24,7 @@ if __name__ == '__main__':
     audio_processor.load_processed_files('processed_songs.txt')
     audio_processor.find_oggs()
     audio_processor.process_oggs(args.lufs, args.sample_rate)
+
+
+if __name__ == '__main__':
+    main()
