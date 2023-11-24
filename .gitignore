@@ -167,3 +167,4 @@ cython_debug/
 /test_data/
 /debug_files/
 /processed_songs.json
+/processed_songs.txt

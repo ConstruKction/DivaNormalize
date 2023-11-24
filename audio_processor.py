@@ -1,4 +1,3 @@
-import json
 import shlex
 import shutil
 import subprocess
@@ -12,27 +11,25 @@ class AudioProcessor:
     def __init__(self, mods_dir_path):
         self.mods_dir_path = mods_dir_path
         self.oggs = []
-        self.processed_files = set()
-
-    oggs = []
+        self.processed_files = []
 
     def load_processed_files(self, record_file):
         try:
-            logger.info('Loading already processed records.')
+            logger.info('Loading already processed records...')
 
             with open(record_file, 'r') as f:
-                self.processed_files = set(json.load(f))
-        except (FileNotFoundError, json.JSONDecodeError):
+                for item in f:
+                    self.processed_files.append(item)
+        except FileNotFoundError:
             pass
 
     def save_processed_files(self, record_file):
-        with open(record_file, 'w') as f:
-            json.dump(list(self.processed_files), f)
-
-        logger.info('Song normalized and saved in the record.')
+        with open(record_file, 'a+') as f:
+            for item in self.processed_files:
+                f.write(f'{item}\n')
 
     def find_oggs(self):
-        for path in self.mods_dir_path.rglob('song/*.ogg'):
+        for path in Path(self.mods_dir_path).rglob('song/*.ogg'):
             self.oggs.append(path)
 
     @staticmethod
@@ -50,11 +47,20 @@ class AudioProcessor:
         logger.info(f'LUFS: {lufs}')
 
         for ogg in self.oggs:
-            if ogg not in self.processed_files:
-                temp_output_path = str(Path(tempfile.mkdtemp()) / ogg.name)
-                command = self.build_command(ogg, lufs, sample_rate, temp_output_path)
-                self.execute_command(command, ogg)
-                shutil.move(temp_output_path, ogg)  # Rename the temp file to overwrite the original
-                self.processed_files.add(ogg)
+            if f'{ogg.name}\n' in self.processed_files:
+                logger.info(f'Song {ogg.name} is already normalized. Skipping to the next song.')
+                continue
 
-        self.save_processed_files('processed_songs.json')
+            temp_output_path = str(Path(tempfile.mkdtemp()) / ogg.name)
+
+            command = self.build_command(ogg, lufs, sample_rate, temp_output_path)
+            self.execute_command(command, ogg)
+
+            shutil.move(temp_output_path, ogg)  # Rename the temp file to overwrite the original
+
+            self.processed_files.append(ogg.name)
+            logger.info(f'Song {ogg.name} normalized and saved in the known records')
+
+        self.save_processed_files('processed_songs.txt')
+
+        logger.info('Done.')

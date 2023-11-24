@@ -20,6 +20,6 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     audio_processor = AudioProcessor(args.input)
-    audio_processor.load_processed_files('processed_songs.json')
+    audio_processor.load_processed_files('processed_songs.txt')
     audio_processor.find_oggs()
     audio_processor.process_oggs(args.lufs, args.sample_rate)
