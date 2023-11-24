@@ -1,7 +1,7 @@
 import argparse
 from pathlib import Path
 
-from AudioProcessor import AudioProcessor
+from audio_processor import AudioProcessor
 
 MODS_DIR_PATH = Path('E:/SteamLibrary/steamapps/common/Hatsune Miku Project DIVA Mega Mix Plus/mods_test')
 
