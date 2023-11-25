@@ -19,7 +19,7 @@ python main.py -i /path/to/your/mods -l -15 -s 44100
 1. Clone the repository:
 
    ```bash
-   git clone https://github.com/your_username/your_repository.git
+   git clone https://github.com/ConstruKction/DivaNormalize.git
    ```
 
 2. Install the required dependencies:
