@@ -14,9 +14,22 @@ class AudioProcessor:
     def __init__(self, mods_dir_path: Path):
         self.mods_dir_path = mods_dir_path
         self.oggs: List[Path] = []
+        self.processed_oggs: List[str] = []
 
         logger.remove()
         logger.add(sys.stdout, level="INFO")
+
+    @staticmethod
+    def load_normalized_oggs() -> List[str]:
+        with open('processed_songs.txt', 'r', encoding='utf-8') as f:
+            return [song.strip() for song in f]
+
+    @staticmethod
+    def update_normalized_oggs_list(records: List[str]) -> None:
+        with open('processed_songs.txt', 'a', encoding='utf-8') as f:
+            for record in records:
+                if record.strip():
+                    f.write(f'{record.strip()}\n')
 
     def find_oggs(self) -> None:
         if not self.mods_dir_path.exists():
@@ -33,25 +46,41 @@ class AudioProcessor:
         return command
 
     @staticmethod
-    def execute_command(command: List[str], filename: Path) -> None:
-        subprocess.run(command)
+    def execute_command(command: List[str], filename: Path) -> str:
         logger.info(f'Normalizing {filename.name}')
+        return_value = subprocess.run(command)
 
-    def process_ogg(self, ogg: Path, lufs: float, sample_rate: int) -> None:
+        return filename.name if return_value.returncode == 0 else ''
+
+    def process_ogg(self, ogg: Path, lufs: float, sample_rate: int) -> str:
+        if ogg.name in self.load_normalized_oggs():
+            logger.warning(f'{ogg.name} was normalized before -> skipping.')
+            return ''
+
         temp_output_path = str(Path(tempfile.mkdtemp()) / ogg.name)
 
         command = self.build_command(ogg, lufs, sample_rate, temp_output_path)
-        self.execute_command(command, ogg)
+        processed_ogg_filename = self.execute_command(command, ogg)
 
         shutil.move(temp_output_path, ogg)  # Rename the temp file to overwrite the original
 
         logger.success(f'{ogg.name} normalized!')
+
+        return processed_ogg_filename
 
     def process_oggs(self, lufs: float, sample_rate: int) -> None:
         logger.info(f'LUFS: {lufs}')
 
         with concurrent.futures.ProcessPoolExecutor() as executor:
             # Use executor.map to parallelize the processing of oggs
-            executor.map(self.process_ogg, self.oggs, [lufs] * len(self.oggs), [sample_rate] * len(self.oggs))
+            processed_oggs_task_output = executor.map(self.process_ogg,
+                                                      self.oggs,
+                                                      [lufs] * len(self.oggs),
+                                                      [sample_rate] * len(self.oggs))
+
+            for processed_file_name in processed_oggs_task_output:
+                self.processed_oggs.append(processed_file_name)
+
+            self.update_normalized_oggs_list(self.processed_oggs)
 
         logger.success('Done.')
