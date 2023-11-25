@@ -41,7 +41,7 @@ class AudioProcessor:
 
     @staticmethod
     def build_command(ogg_path: Path, lufs: float, sample_rate: int, temp_output_path: str) -> List[str]:
-        command = shlex.split(f'ffmpeg -loglevel quiet -i "{ogg_path}" -filter:a loudnorm=linear=true:i={lufs} '
+        command = shlex.split(f'ffmpeg -loglevel fatal -i "{ogg_path}" -filter:a loudnorm=linear=true:i={lufs} '
                               f'-ar {sample_rate} "{temp_output_path}"')
         return command
 
@@ -70,6 +70,7 @@ class AudioProcessor:
 
     def process_oggs(self, lufs: float, sample_rate: int) -> None:
         logger.info(f'LUFS: {lufs}')
+        logger.info(f'Sample Rate: {sample_rate}')
 
         with concurrent.futures.ProcessPoolExecutor() as executor:
             # Use executor.map to parallelize the processing of oggs
