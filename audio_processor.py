@@ -40,9 +40,13 @@ class AudioProcessor:
             self.oggs.append(path)
 
     @staticmethod
-    def build_command(ogg_path: Path, lufs: float, sample_rate: int, temp_output_path: str) -> List[str]:
-        command = shlex.split(f'ffmpeg -loglevel fatal -i "{ogg_path}" -filter:a loudnorm=linear=true:i={lufs} '
-                              f'-ar {sample_rate} "{temp_output_path}"')
+    def build_command(ogg_path: Path, lufs: float, true_peak: float, loudness_range: float, sample_rate: int, temp_output_path: str) -> List[str]:
+        command = shlex.split(f'ffmpeg '
+                              f'-loglevel fatal '
+                              f'-i "{ogg_path}" '
+                              f'-filter:a loudnorm=I={lufs}:TP={true_peak}:LRA={loudness_range} '
+                              f'-ar {sample_rate} '
+                              f'"{temp_output_path}"')
         return command
 
     @staticmethod
@@ -52,14 +56,14 @@ class AudioProcessor:
 
         return filename.name if return_value.returncode == 0 else ''
 
-    def process_ogg(self, ogg: Path, lufs: float, sample_rate: int) -> str:
+    def process_ogg(self, ogg: Path, lufs: float, true_peak: float, loudness_range: float, sample_rate: int) -> str:
         if ogg.name in self.load_normalized_oggs():
             logger.warning(f'{ogg.name} was normalized before -> skipping.')
             return ''
 
         temp_output_path = str(Path(tempfile.mkdtemp()) / ogg.name)
 
-        command = self.build_command(ogg, lufs, sample_rate, temp_output_path)
+        command = self.build_command(ogg, lufs, true_peak, loudness_range, sample_rate, temp_output_path)
         processed_ogg_filename = self.execute_command(command, ogg)
 
         shutil.move(temp_output_path, ogg)  # Rename the temp file to overwrite the original
@@ -68,15 +72,19 @@ class AudioProcessor:
 
         return processed_ogg_filename
 
-    def process_oggs(self, lufs: float, sample_rate: int) -> None:
-        logger.info(f'LUFS: {lufs}')
-        logger.info(f'Sample Rate: {sample_rate}')
+    def process_oggs(self, lufs: float, true_peak: float, loudness_range: float, sample_rate: int) -> None:
+        logger.info(f'Target Loudness: {lufs} dB LUFS')
+        logger.info(f'True Peak: {true_peak} dBFS')
+        logger.info(f'Loudness Range: {loudness_range} LU')
+        logger.info(f'Sample Rate: {sample_rate} Hz')
 
         with concurrent.futures.ProcessPoolExecutor() as executor:
             # Use executor.map to parallelize the processing of oggs
             processed_oggs_task_output = executor.map(self.process_ogg,
                                                       self.oggs,
                                                       [lufs] * len(self.oggs),
+                                                      [true_peak] * len(self.oggs),
+                                                      [loudness_range] * len(self.oggs),
                                                       [sample_rate] * len(self.oggs))
 
             for processed_file_name in processed_oggs_task_output:
