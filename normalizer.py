@@ -19,20 +19,20 @@ class Normalizer:
         logger.remove()
         logger.add(sys.stdout, level="INFO")
 
-    def process_song(self, ogg: Path, lufs: float, true_peak: float, loudness_range: float, sample_rate: int) -> str:
-        if ogg.name in self.song_manager.load_normalized_songs():
-            logger.warning(f'{ogg.name} was normalized before -> skipping.')
+    def process_song(self, song: Path, lufs: float, true_peak: float, loudness_range: float, sample_rate: int) -> str:
+        if song.name in self.song_manager.load_normalized_songs():
+            logger.warning(f'{song.name} was normalized before -> skipping.')
             return ''
 
-        temp_output_path = str(Path(tempfile.mkdtemp()) / ogg.name)
+        temp_output_path = str(Path(tempfile.mkdtemp()) / song.name)
 
         cmd_parser = CmdParser()
-        command = cmd_parser.build_command(ogg, lufs, true_peak, loudness_range, sample_rate, temp_output_path)
-        processed_ogg_filename = cmd_parser.execute_command(command, ogg)
+        command = cmd_parser.build_command(song, lufs, true_peak, loudness_range, sample_rate, temp_output_path)
+        processed_ogg_filename = cmd_parser.execute_command(command, song)
 
-        shutil.move(temp_output_path, ogg)  # Rename the temp file to overwrite the original
+        shutil.move(temp_output_path, song)  # Rename the temp file to overwrite the original
 
-        logger.success(f'{ogg.name} normalized!')
+        logger.success(f'{song.name} normalized!')
 
         return processed_ogg_filename
 
