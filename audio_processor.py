@@ -1,7 +1,5 @@
 import concurrent.futures
-import shlex
 import shutil
-import subprocess
 import sys
 import tempfile
 from pathlib import Path
@@ -10,6 +8,7 @@ from typing import List
 from loguru import logger
 
 from song_manager import SongManager
+from cmd_parser import CmdParser
 
 
 class AudioProcessor:
@@ -18,6 +17,7 @@ class AudioProcessor:
         self.oggs: List[Path] = []
         self.processed_oggs: List[str] = []
         self.song_manager = SongManager()
+        self.cmd_parser = CmdParser()
 
         logger.remove()
         logger.add(sys.stdout, level="INFO")
@@ -30,24 +30,6 @@ class AudioProcessor:
         for path in Path(self.mods_dir_path).rglob('song/*.ogg'):
             self.oggs.append(path)
 
-    @staticmethod
-    def build_command(ogg_path: Path, lufs: float, true_peak: float, loudness_range: float, sample_rate: int,
-                      temp_output_path: str) -> List[str]:
-        command = shlex.split(f'ffmpeg '
-                              f'-loglevel fatal '
-                              f'-i "{ogg_path}" '
-                              f'-filter:a loudnorm=I={lufs}:TP={true_peak}:LRA={loudness_range} '
-                              f'-ar {sample_rate} '
-                              f'"{temp_output_path}"')
-        return command
-
-    @staticmethod
-    def execute_command(command: List[str], filename: Path) -> str:
-        logger.info(f'Normalizing {filename.name}')
-        return_value = subprocess.run(command)
-
-        return filename.name if return_value.returncode == 0 else ''
-
     def process_ogg(self, ogg: Path, lufs: float, true_peak: float, loudness_range: float, sample_rate: int) -> str:
         if ogg.name in self.song_manager.load_normalized_oggs():
             logger.warning(f'{ogg.name} was normalized before -> skipping.')
@@ -55,8 +37,8 @@ class AudioProcessor:
 
         temp_output_path = str(Path(tempfile.mkdtemp()) / ogg.name)
 
-        command = self.build_command(ogg, lufs, true_peak, loudness_range, sample_rate, temp_output_path)
-        processed_ogg_filename = self.execute_command(command, ogg)
+        command = self.cmd_parser.build_command(ogg, lufs, true_peak, loudness_range, sample_rate, temp_output_path)
+        processed_ogg_filename = self.cmd_parser.execute_command(command, ogg)
 
         shutil.move(temp_output_path, ogg)  # Rename the temp file to overwrite the original
 
