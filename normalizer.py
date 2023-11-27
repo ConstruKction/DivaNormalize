@@ -11,7 +11,7 @@ from song_manager import SongManager
 from cmd_parser import CmdParser
 
 
-class AudioProcessor:
+class Normalizer:
     def __init__(self, input_directory_path: Path):
         self.song_manager = SongManager()
         self.songs: List[Path] = self.song_manager.find_songs(input_directory_path)
@@ -46,15 +46,15 @@ class AudioProcessor:
 
         with concurrent.futures.ProcessPoolExecutor() as executor:
             # Use executor.map to parallelize the processing of oggs
-            processed_oggs_task_output = executor.map(self.process_song,
-                                                      self.songs,
-                                                      [lufs] * len(self.songs),
-                                                      [true_peak] * len(self.songs),
-                                                      [loudness_range] * len(self.songs),
-                                                      [sample_rate] * len(self.songs))
+            normalized_songs_task_output = executor.map(self.process_song,
+                                                        self.songs,
+                                                        [lufs] * len(self.songs),
+                                                        [true_peak] * len(self.songs),
+                                                        [loudness_range] * len(self.songs),
+                                                        [sample_rate] * len(self.songs))
 
-            for processed_file_name in processed_oggs_task_output:
-                normalized_songs.append(processed_file_name)
+            for normalized_song in normalized_songs_task_output:
+                normalized_songs.append(normalized_song)
 
             self.song_manager.update_normalized_songs_file(normalized_songs)
 

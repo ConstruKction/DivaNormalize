@@ -7,7 +7,8 @@ class ArgParser:
     def __init__(self):
         self.parser = argparse.ArgumentParser()
         self.parser.add_argument('-i', '--input',
-                                 help='FULL PATH to your mods directory. Default is wherever the script is.',
+                                 help='Full path to a directory. Default is wherever the script is. All folders will '
+                                      'be scanned recursively for \'song\' folders with *.ogg files inside.',
                                  type=Path,
                                  default='.')
         self.parser.add_argument('-l', '--lufs',
