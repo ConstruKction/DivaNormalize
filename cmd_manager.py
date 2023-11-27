@@ -21,7 +21,7 @@ class CmdManager:
 
     @staticmethod
     def execute_command(command: List[str], filename: Path) -> str:
-        logger.info(f'Normalizing {filename.name}')
+        logger.info(f'Processing {filename.name}')
         return_value = subprocess.run(command)
 
         return filename.name if return_value.returncode == 0 else ''
