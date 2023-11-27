@@ -9,27 +9,18 @@ from typing import List
 
 from loguru import logger
 
+from song_manager import SongManager
+
 
 class AudioProcessor:
     def __init__(self, mods_dir_path: Path):
         self.mods_dir_path = mods_dir_path
         self.oggs: List[Path] = []
         self.processed_oggs: List[str] = []
+        self.song_manager = SongManager()
 
         logger.remove()
         logger.add(sys.stdout, level="INFO")
-
-    @staticmethod
-    def load_normalized_oggs() -> List[str]:
-        with open('processed_songs.txt', 'r', encoding='utf-8') as f:
-            return [song.strip() for song in f]
-
-    @staticmethod
-    def update_normalized_oggs_list(records: List[str]) -> None:
-        with open('processed_songs.txt', 'a', encoding='utf-8') as f:
-            for record in records:
-                if record.strip():
-                    f.write(f'{record.strip()}\n')
 
     def find_oggs(self) -> None:
         if not self.mods_dir_path.exists():
@@ -58,7 +49,7 @@ class AudioProcessor:
         return filename.name if return_value.returncode == 0 else ''
 
     def process_ogg(self, ogg: Path, lufs: float, true_peak: float, loudness_range: float, sample_rate: int) -> str:
-        if ogg.name in self.load_normalized_oggs():
+        if ogg.name in self.song_manager.load_normalized_oggs():
             logger.warning(f'{ogg.name} was normalized before -> skipping.')
             return ''
 
@@ -91,6 +82,6 @@ class AudioProcessor:
             for processed_file_name in processed_oggs_task_output:
                 self.processed_oggs.append(processed_file_name)
 
-            self.update_normalized_oggs_list(self.processed_oggs)
+            self.song_manager.update_normalized_oggs_list(self.processed_oggs)
 
         logger.success('Done.')
