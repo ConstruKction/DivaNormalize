@@ -30,7 +30,7 @@ def main():
 
     audio_processor = AudioProcessor(args.input)
     audio_processor.find_oggs()
-    audio_processor.process_oggs(args.lufs, args.true_peak, args.loudness_range,args.sample_rate)
+    audio_processor.process_oggs(args.lufs, args.true_peak, args.loudness_range, args.sample_rate)
 
 
 if __name__ == '__main__':

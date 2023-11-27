@@ -40,7 +40,8 @@ class AudioProcessor:
             self.oggs.append(path)
 
     @staticmethod
-    def build_command(ogg_path: Path, lufs: float, true_peak: float, loudness_range: float, sample_rate: int, temp_output_path: str) -> List[str]:
+    def build_command(ogg_path: Path, lufs: float, true_peak: float, loudness_range: float, sample_rate: int,
+                      temp_output_path: str) -> List[str]:
         command = shlex.split(f'ffmpeg '
                               f'-loglevel fatal '
                               f'-i "{ogg_path}" '
