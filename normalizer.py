@@ -8,7 +8,7 @@ from typing import List
 from loguru import logger
 
 from song_manager import SongManager
-from cmd_parser import CmdParser
+from cmd_manager import CmdManager
 
 
 class Normalizer:
@@ -26,7 +26,7 @@ class Normalizer:
 
         temp_output_path = str(Path(tempfile.mkdtemp()) / song.name)
 
-        cmd_parser = CmdParser()
+        cmd_parser = CmdManager()
         command = cmd_parser.build_command(song, lufs, true_peak, loudness_range, sample_rate, temp_output_path)
         processed_ogg_filename = cmd_parser.execute_command(command, song)
 

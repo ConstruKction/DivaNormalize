@@ -6,7 +6,7 @@ from typing import List
 from loguru import logger
 
 
-class CmdParser:
+class CmdManager:
 
     @staticmethod
     def build_command(ogg_path: Path, lufs: float, true_peak: float, loudness_range: float, sample_rate: int,
