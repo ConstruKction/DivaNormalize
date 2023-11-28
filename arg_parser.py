@@ -11,6 +11,10 @@ class ArgParser:
                                       'be scanned recursively for \'song\' folders with *.ogg files inside.',
                                  type=Path,
                                  default='.')
+        self.parser.add_argument('-t', '--two-pass',
+                                 help='Run normalization twice based on the first pass analysis data. Using this flag '
+                                      'will ignore lufs, true peak, and loudness range arguments.',
+                                 action=argparse.BooleanOptionalAction)
         self.parser.add_argument('-l', '--lufs',
                                  help='Target loudness level. Default is -15 dB LUFS.',
                                  type=float,

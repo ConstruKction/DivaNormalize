@@ -12,38 +12,58 @@ from cmd_manager import CmdManager
 
 
 class Normalizer:
-    def __init__(self, input_directory_path: Path):
+    def __init__(self, input_directory_path: Path, two_pass: bool):
         self.song_manager = SongManager()
         self.songs: List[Path] = self.song_manager.find_songs(input_directory_path)
+        self.two_pass = two_pass
 
         logger.remove()
         logger.add(sys.stdout, level="INFO")
 
-    def process_song(self, song: Path, lufs: float, true_peak: float, loudness_range: float, sample_rate: int) -> str:
-        if song.name in self.song_manager.load_normalized_songs():
-            logger.warning(f'{song.name} was normalized before -> skipping.')
+    def process_song(self, song_path: Path, lufs: float, true_peak: float, loudness_range: float,
+                     sample_rate: int) -> str:
+        if song_path.name in self.song_manager.load_normalized_songs():
+            logger.warning(f'{song_path.name} was normalized before -> skipping.')
             return ''
 
-        temp_output_path = str(Path(tempfile.mkdtemp()) / song.name)
+        temp_output_path = str(Path(tempfile.mkdtemp()) / song_path.name)
 
-        cmd_parser = CmdManager()
-        command = cmd_parser.build_command(song, lufs, true_peak, loudness_range, sample_rate, temp_output_path)
-        processed_ogg_filename = cmd_parser.execute_command(command, song)
+        cmd_manager = CmdManager()
 
-        shutil.move(temp_output_path, song)  # Rename the temp file to overwrite the original
+        if self.two_pass:
+            analyze_command = cmd_manager.build_analyze_command(song_path)
+            analysis_data = cmd_manager.parse_song_analysis_data(cmd_manager.execute_first_pass_command(analyze_command,
+                                                                                                        song_path))
+            command = cmd_manager.build_normalize_command(song_path,
+                                                          analysis_data['output_i'],
+                                                          analysis_data['output_tp'],
+                                                          analysis_data['output_lra'],
+                                                          sample_rate,
+                                                          temp_output_path)
 
-        logger.success(f'{song.name} normalized!')
+            logger.info(f"{song_path.name} - "
+                        f"lufs: {analysis_data['output_i']} | "
+                        f"tp: {analysis_data['output_tp']} | "
+                        f"lra: {analysis_data['output_lra']} | "
+                        f"{sample_rate} Hz")
+        else:
+            command = cmd_manager.build_normalize_command(song_path,
+                                                          lufs,
+                                                          true_peak,
+                                                          loudness_range,
+                                                          sample_rate,
+                                                          temp_output_path)
 
-        return processed_ogg_filename
+        normalized_song_filename = cmd_manager.execute_normalize_command(command, song_path)
+
+        shutil.move(temp_output_path, song_path)  # Rename the temp file to overwrite the original
+
+        logger.success(f'{song_path.name} normalized!')
+
+        return normalized_song_filename
 
     def normalize_songs(self, lufs: float, true_peak: float, loudness_range: float, sample_rate: int) -> None:
         normalized_songs = []
-
-        logger.info(f'Target Loudness: {lufs} dB LUFS')
-        logger.info(f'True Peak: {true_peak} dBFS')
-        logger.info(f'Loudness Range: {loudness_range} LU')
-        logger.info(f'Sample Rate: {sample_rate} Hz')
-
         with concurrent.futures.ProcessPoolExecutor() as executor:
             # Use executor.map to parallelize the processing of oggs
             normalized_songs_task_output = executor.map(self.process_song,
