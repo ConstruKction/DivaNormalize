@@ -2,6 +2,7 @@ import concurrent.futures
 import shutil
 import sys
 import tempfile
+import time
 from pathlib import Path
 from typing import List
 
@@ -70,6 +71,8 @@ class Normalizer:
         return normalized_song_filename
 
     def normalize_songs(self, lufs: float, true_peak: float, loudness_range: float, sample_rate: int) -> None:
+        start_time = time.time()
+
         normalized_songs = []
         with concurrent.futures.ProcessPoolExecutor() as executor:
             futures = [executor.submit(self.process_song, song, lufs, true_peak, loudness_range, sample_rate) for song
@@ -88,4 +91,7 @@ class Normalizer:
 
             self.song_manager.update_normalized_songs_file(normalized_songs)
 
-        logger.success('Done.')
+        end_time = time.time()
+        elapsed_time_seconds = end_time - start_time
+        elapsed_time_minutes = elapsed_time_seconds / 60.0
+        logger.success(f'Done! Finished in {elapsed_time_minutes:.2f} minutes.')
