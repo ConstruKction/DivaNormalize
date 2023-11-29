@@ -86,4 +86,6 @@ class Normalizer:
                 else:
                     normalized_songs.append(normalized_song)
 
+            self.song_manager.update_normalized_songs_file(normalized_songs)
+
         logger.success('Done.')
