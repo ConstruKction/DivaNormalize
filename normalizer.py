@@ -24,6 +24,21 @@ class Normalizer:
         if self.two_pass:
             logger.info('Two-pass mode enabled!')
 
+    @staticmethod
+    def verify_range(number: float, min_range: float, max_range: float, name: str) -> float:
+        n = float(number)
+        if n < min_range or n > max_range:
+            logger.warning(f'{name} must be within {min_range} and {max_range}.')
+
+        if n < min_range:
+            logger.warning(f'Adjusting {name} from {number} to {min_range}.')
+            return min_range
+        elif n > max_range:
+            logger.warning(f'Adjusting {name} from {number} to {max_range}.')
+            return max_range
+        else:
+            return number
+
     def process_song(self, song_path: Path, lufs: float, true_peak: float, loudness_range: float,
                      sample_rate: int) -> str:
         if song_path.name in self.song_manager.load_normalized_songs():
@@ -38,17 +53,22 @@ class Normalizer:
             analyze_command = cmd_manager.build_analyze_command(song_path)
             analysis_data = cmd_manager.parse_song_analysis_data(cmd_manager.execute_first_pass_command(analyze_command,
                                                                                                         song_path))
+
+            lufs = self.verify_range(analysis_data['output_i'], -70.0, -5.0, 'LUFS')
+            true_peak = self.verify_range(analysis_data['output_tp'], -9.0, 0.0, 'True Peak')
+            loudness_range = self.verify_range(analysis_data['output_lra'], 1.0, 50.0, 'Loudness Range')
+
             command = cmd_manager.build_normalize_command(song_path,
-                                                          analysis_data['output_i'],
-                                                          analysis_data['output_tp'],
-                                                          analysis_data['output_lra'],
+                                                          lufs,
+                                                          true_peak,
+                                                          loudness_range,
                                                           sample_rate,
                                                           temp_output_path)
 
             logger.info(f"{song_path.name} - "
-                        f"lufs: {analysis_data['output_i']} | "
-                        f"tp: {analysis_data['output_tp']} | "
-                        f"lra: {analysis_data['output_lra']} | "
+                        f"lufs: {lufs} | "
+                        f"tp: {true_peak} | "
+                        f"lra: {loudness_range} | "
                         f"{sample_rate} Hz")
         else:
             command = cmd_manager.build_normalize_command(song_path,
