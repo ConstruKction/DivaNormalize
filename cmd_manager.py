@@ -18,7 +18,7 @@ class CmdManager:
     def build_analyze_command(song_path: Path) -> List[str]:
         command = shlex.split(f'ffmpeg '
                               f'-i "{song_path}" '
-                              f'-af "loudnorm=print_format=json" '
+                              f'-af "loudnorm=I=-14:LRA=7:tp=-2:print_format=json" '
                               f'-f null -')
         return command
 
