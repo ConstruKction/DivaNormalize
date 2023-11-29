@@ -64,7 +64,7 @@ class Normalizer:
             logger.success(f'{song_path.name} normalized!')
         else:
             logger.error(f'Temp file not found for {song_path.name}. Skipped & saved in failed_songs.txt.')
-            with open('failed_songs.txt', 'w') as f:
+            with open('failed_songs.txt', 'a') as f:
                 f.write(f'{song_path}\n')
 
         return normalized_song_filename
