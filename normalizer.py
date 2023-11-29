@@ -20,6 +20,9 @@ class Normalizer:
         logger.remove()
         logger.add(sys.stdout, level="INFO")
 
+        if self.two_pass:
+            logger.info('Two-pass mode enabled!')
+
     def process_song(self, song_path: Path, lufs: float, true_peak: float, loudness_range: float,
                      sample_rate: int) -> str:
         if song_path.name in self.song_manager.load_normalized_songs():
