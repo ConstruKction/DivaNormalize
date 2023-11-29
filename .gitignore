@@ -168,3 +168,4 @@ cython_debug/
 /debug_files/
 /processed_songs.json
 /processed_songs.txt
+/failed_songs.txt

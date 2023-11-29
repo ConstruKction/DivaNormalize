@@ -59,26 +59,31 @@ class Normalizer:
 
         normalized_song_filename = cmd_manager.execute_normalize_command(command, song_path)
 
-        shutil.move(temp_output_path, song_path)  # Rename the temp file to overwrite the original
-
-        logger.success(f'{song_path.name} normalized!')
+        if Path(temp_output_path).exists():
+            shutil.move(temp_output_path, song_path)  # Rename the temp file to overwrite the original
+            logger.success(f'{song_path.name} normalized!')
+        else:
+            logger.error(f'Temp file not found for {song_path.name}. Skipped & saved in failed_songs.txt.')
+            with open('failed_songs.txt', 'w') as f:
+                f.write(f'{song_path}\n')
 
         return normalized_song_filename
 
     def normalize_songs(self, lufs: float, true_peak: float, loudness_range: float, sample_rate: int) -> None:
         normalized_songs = []
         with concurrent.futures.ProcessPoolExecutor() as executor:
-            # Use executor.map to parallelize the processing of oggs
-            normalized_songs_task_output = executor.map(self.process_song,
-                                                        self.songs,
-                                                        [lufs] * len(self.songs),
-                                                        [true_peak] * len(self.songs),
-                                                        [loudness_range] * len(self.songs),
-                                                        [sample_rate] * len(self.songs))
+            futures = [executor.submit(self.process_song, song, lufs, true_peak, loudness_range, sample_rate) for song
+                       in self.songs]
 
-            for normalized_song in normalized_songs_task_output:
-                normalized_songs.append(normalized_song)
-
-            self.song_manager.update_normalized_songs_file(normalized_songs)
+            for future in concurrent.futures.as_completed(futures):
+                try:
+                    normalized_song = future.result()
+                    if not normalized_song:
+                        # Skip normalizing if the result is empty (indicating an error)
+                        continue
+                except Exception as e:
+                    logger.error(f'An error occurred in process: {e}')
+                else:
+                    normalized_songs.append(normalized_song)
 
         logger.success('Done.')
