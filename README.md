@@ -9,9 +9,12 @@ It's made to use 100% of your CPU until it's finished.
 ```bash
 python main.py -i /path/to/your/mods -l -15 -s 44100
 ```
+```bash
+python main.py --two-pass -i /path/to/your/mods
+```
 
 ### Options
-
+- `-t --two-pass`: Will ignore user input and perform two-pass loudness normalization based on EBU R128 standard (-14.0 LUFS, -2.0 TP, 7.0 LRA).
 - `-i, --input`: Full path to your mods directory. Default is the current script location.
 - `-l, --lufs`: LUFS threshold for loudness analysis. Default is -15.
 - `-s, --sample-rate`: Sample rate in Hz. MM+ is 44100, and PDAFT is 48000. Default is 44100.
@@ -36,9 +39,13 @@ The program reads audio files (OGG format) within the specified mods directory a
 the provided LUFS threshold. The processing is multithreaded, and it WILL load your CPU to 100%. The processed files are
 then overwritten in place.
 
+## Purpose of Two-Pass Normalization
+
+In audio processing, two-pass normalization, involves analyzing the audio content in two passes to provide a more accurate and consistent loudness normalization. The first pass measures the loudness levels, and the second pass applies the normalization based on the gathered information. This method is particularly effective in ensuring a balanced and uniform volume across different audio files. I'd recommend using this method for extra precision, even though it takes much longer.
+
 ## Benchmark
 
-On a Ryzen 3600, normalizing approximately 500 songs took around 20 minutes at full CPU load.
+On a Ryzen 3600, normalizing approximately 500 songs took around 20 minutes at full CPU load. Expect that time to double when running two-pass.
 
 ## Disclaimer
 
