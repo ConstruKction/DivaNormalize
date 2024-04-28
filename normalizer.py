@@ -13,16 +13,19 @@ from cmd_manager import CmdManager
 
 
 class Normalizer:
-    def __init__(self, input_directory_path: Path, two_pass: bool):
+    def __init__(self, input_directory_path: Path):
         self.song_manager = SongManager()
         self.songs: List[Path] = self.song_manager.find_songs(input_directory_path)
-        self.two_pass = two_pass
+        self.initialize_processed_songs_file()
 
         logger.remove()
         logger.add(sys.stdout, level="INFO")
 
-        if self.two_pass:
-            logger.info('Two-pass mode enabled!')
+    @staticmethod
+    def initialize_processed_songs_file():
+        processed_songs_file = Path('processed_songs.txt')
+        if not processed_songs_file.exists():
+            processed_songs_file.touch()
 
     @staticmethod
     def verify_range(number: float, min_range: float, max_range: float, name: str) -> float:
@@ -49,34 +52,12 @@ class Normalizer:
 
         cmd_manager = CmdManager()
 
-        if self.two_pass:
-            analyze_command = cmd_manager.build_analyze_command(song_path)
-            analysis_data = cmd_manager.parse_song_analysis_data(cmd_manager.execute_first_pass_command(analyze_command,
-                                                                                                        song_path))
-
-            lufs = self.verify_range(analysis_data['output_i'], -70.0, -5.0, 'LUFS')
-            true_peak = self.verify_range(analysis_data['output_tp'], -9.0, 0.0, 'True Peak')
-            loudness_range = self.verify_range(analysis_data['output_lra'], 1.0, 50.0, 'Loudness Range')
-
-            command = cmd_manager.build_normalize_command(song_path,
-                                                          lufs,
-                                                          true_peak,
-                                                          loudness_range,
-                                                          sample_rate,
-                                                          temp_output_path)
-
-            logger.info(f"{song_path.name} - "
-                        f"lufs: {lufs} | "
-                        f"tp: {true_peak} | "
-                        f"lra: {loudness_range} | "
-                        f"{sample_rate} Hz")
-        else:
-            command = cmd_manager.build_normalize_command(song_path,
-                                                          lufs,
-                                                          true_peak,
-                                                          loudness_range,
-                                                          sample_rate,
-                                                          temp_output_path)
+        command = cmd_manager.build_normalize_command(song_path,
+                                                      lufs,
+                                                      true_peak,
+                                                      loudness_range,
+                                                      sample_rate,
+                                                      temp_output_path)
 
         normalized_song_filename = cmd_manager.execute_normalize_command(command, song_path)
 

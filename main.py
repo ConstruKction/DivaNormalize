@@ -6,7 +6,7 @@ def main():
     arg_parser = ArgParser()
     args = arg_parser.parse_args()
 
-    normalizer = Normalizer(args.input, args.two_pass)
+    normalizer = Normalizer(args.input)
     normalizer.normalize_songs(args.lufs, args.true_peak, args.loudness_range, args.sample_rate)
 
 

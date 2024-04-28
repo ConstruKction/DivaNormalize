@@ -15,14 +15,6 @@ class CmdManager:
         return json.loads(json_string)
 
     @staticmethod
-    def build_analyze_command(song_path: Path) -> List[str]:
-        command = shlex.split(f'ffmpeg '
-                              f'-i "{song_path}" '
-                              f'-af "loudnorm=I=-14:LRA=7:tp=-2:print_format=json" '
-                              f'-f null -')
-        return command
-
-    @staticmethod
     def build_normalize_command(song_path: Path, lufs: float, true_peak: float, loudness_range: float, sample_rate: int,
                                 temp_output_path: str) -> List[str]:
         command = shlex.split(f'ffmpeg '
@@ -38,7 +30,8 @@ class CmdManager:
         logger.info(f'Analyzing {filename.name}')
         stdout = subprocess.run(command, shell=True, stdout=subprocess.PIPE,
                                 stderr=subprocess.PIPE).stderr.decode('utf-8')
-        # ffmpeg spits out perfectly fine output to stderr by design
+        # ffmpeg spits out perfectly fine output to stderr by design don't ask me why
+        # I literally pikachuface.jpg'd turbo hard when I found out
 
         return stdout
 
