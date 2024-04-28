@@ -14,7 +14,7 @@ class ArgParser:
         self.parser.add_argument('-l', '--lufs',
                                  help='Target loudness level. Default is -14 dB LUFS.',
                                  type=float,
-                                 default=-15)
+                                 default=-14)
         self.parser.add_argument('-p', '--true-peak',
                                  help='Target True Peak level. Default is -1 dBFS.',
                                  type=float,
