@@ -16,16 +16,9 @@ class Normalizer:
     def __init__(self, input_directory_path: Path):
         self.song_manager = SongManager()
         self.songs: List[Path] = self.song_manager.find_songs(input_directory_path)
-        self.initialize_processed_songs_file()
 
         logger.remove()
         logger.add(sys.stdout, level="INFO")
-
-    @staticmethod
-    def initialize_processed_songs_file():
-        processed_songs_file = Path('processed_songs.txt')
-        if not processed_songs_file.exists():
-            processed_songs_file.touch()
 
     @staticmethod
     def verify_range(number: float, min_range: float, max_range: float, name: str) -> float:
@@ -51,7 +44,6 @@ class Normalizer:
         temp_output_path = str(Path(tempfile.mkdtemp()) / song_path.name)
 
         cmd_manager = CmdManager()
-
         command = cmd_manager.build_normalize_command(song_path,
                                                       lufs,
                                                       true_peak,
@@ -66,7 +58,7 @@ class Normalizer:
             logger.success(f'{song_path.name} normalized!')
         else:
             logger.error(f'Temp file not found for {song_path.name}. Skipped & saved in failed_songs.txt.')
-            with open('failed_songs.txt', 'a') as f:
+            with open('failed_songs.txt', 'a+') as f:
                 f.write(f'{song_path}\n')
 
         return normalized_song_filename

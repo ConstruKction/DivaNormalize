@@ -26,16 +26,6 @@ class CmdManager:
         return command
 
     @staticmethod
-    def execute_first_pass_command(command: List[str], filename: Path) -> str:
-        logger.info(f'Analyzing {filename.name}')
-        stdout = subprocess.run(command, shell=True, stdout=subprocess.PIPE,
-                                stderr=subprocess.PIPE).stderr.decode('utf-8')
-        # ffmpeg spits out perfectly fine output to stderr by design don't ask me why
-        # I literally pikachuface.jpg'd turbo hard when I found out
-
-        return stdout
-
-    @staticmethod
     def execute_normalize_command(command: List[str], filename: Path) -> str:
         logger.info(f'Processing {filename.name}')
         return_value = subprocess.run(command)
