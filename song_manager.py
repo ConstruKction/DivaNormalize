@@ -24,8 +24,7 @@ class SongManager:
             return [song.strip() for song in f]
 
     @staticmethod
-    def update_normalized_songs_file(records: List[str]) -> None:
+    def update_normalized_songs_file(record: str):
         with open('processed_songs.txt', 'a+', encoding='utf-8') as f:
-            for record in records:
-                if record.strip():
-                    f.write(f'{record.strip()}\n')
+            if record.strip():
+                f.write(f'{record.strip()}\n')
