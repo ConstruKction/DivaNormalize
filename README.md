@@ -32,6 +32,9 @@ python main.py -i "/path/to/your/mods" -t -15 -ar 48000
    pip install -r requirements.txt
    ```
 
+3. Install FFmpeg using your package manager or download the most recent version from [here](https://www.ffmpeg.org/download.html).
+4. *WINDOWS ONLY*: You must add FFmpeg to the [PATH environment variable](https://superuser.com/a/284351).
+
 ## How It Works
 
 The program reads audio files (.ogg format) within the specified mods directory and normalizes their volumes according to
