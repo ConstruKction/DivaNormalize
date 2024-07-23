@@ -20,20 +20,19 @@ python main.py -i "/path/to/your/mods" -t -15 -ar 48000
 
 ## Installation
 
-1. Clone the repository:
+1. Install FFmpeg using your package manager or download the most recent version from [here](https://www.ffmpeg.org/download.html).
+3. *WINDOWS ONLY*: You must add FFmpeg to the [PATH environment variable](https://superuser.com/a/284351).
+4. Clone the repository:
 
    ```bash
    git clone https://github.com/ConstruKction/DivaNormalize.git
    ```
-
-2. Install the required dependencies:
+5. Install the required dependencies:
 
    ```bash
    pip install -r requirements.txt
    ```
 
-3. Install FFmpeg using your package manager or download the most recent version from [here](https://www.ffmpeg.org/download.html).
-4. *WINDOWS ONLY*: You must add FFmpeg to the [PATH environment variable](https://superuser.com/a/284351).
 
 ## How It Works
 
