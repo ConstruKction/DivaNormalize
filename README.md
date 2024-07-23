@@ -52,6 +52,7 @@ different from the default) before committing to any irreversible changes.
 ## Dependencies
 
 - [FFmpeg](https://ffmpeg.org/): Required for audio processing.
+- [ffmpeg-normalize](https://pypi.org/project/ffmpeg-normalize/): For much easier dual-pass capabilities.
 - [loguru](https://pypi.org/project/loguru/): Used for logging information.
 - [humanize](https://pypi.org/project/humanize/): Used for turning numbers into fuzzy human-readable duration.
 
